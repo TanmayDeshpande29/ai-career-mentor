@@ -1,10 +1,10 @@
 import { Outlet } from "react-router-dom";
-
+import Navbar from "../components/common/Navbar/Navbar";
+import Footer from "../components/common/Footer/Footer";
 
 function MainLayout() {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-white">
-
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
       <Navbar />
 
       <main className="flex-1">
@@ -12,7 +12,6 @@ function MainLayout() {
       </main>
 
       <Footer />
-
     </div>
   );
 }

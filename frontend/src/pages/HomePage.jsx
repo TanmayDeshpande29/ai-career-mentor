@@ -1,10 +1,13 @@
-function Home() {
+import HeroSection from "../components/landing/HeroSection";
+import FeatureSection from "../components/landing/FeatureSection";
+
+function HomePage() {
   return (
-    <div>
-      <h1>AI Career Mentor</h1>
-      <p>Welcome to AI Career Mentor</p>
-    </div>
+    <>
+      <HeroSection />
+      <FeatureSection />
+    </>
   );
 }
 
-export default Home;
+export default HomePage;
