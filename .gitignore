@@ -30,3 +30,4 @@ build/
 
 # IDE
 .idea/
+node_modules
