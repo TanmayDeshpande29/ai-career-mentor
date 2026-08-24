@@ -9,6 +9,7 @@ alembic
 
 python-jose
 passlib
+pwdlib
 
 python-multipart
 
@@ -29,3 +30,5 @@ pypdf
 python-docx
 
 httpx
+
+PyJWT
