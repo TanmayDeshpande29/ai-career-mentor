@@ -28,3 +28,18 @@ class UserRepository:
         db.refresh(user)
 
         return user
+
+    @staticmethod
+    def get_by_id(
+        db: Session,
+        user_id: UUID,
+    ) -> User | None:
+        """
+        Returns a user by UUID.
+        """
+
+        statement = select(User).where(
+            User.id == user_id
+        )
+
+        return db.execute(statement).scalar_one_or_none()

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.models.users import User
 from app.repositories.user_repositories import UserRepository
 from app.schemas.user import UserCreate
+
 from app.core.security import (
     hash_password,
     verify_password,
@@ -14,7 +15,10 @@ from app.core.security import (
 class AuthService:
 
     @staticmethod
-    def register_user(db: Session, user_data: UserCreate) -> User:
+    def register_user(
+        db: Session,
+        user_data: UserCreate,
+    ) -> User:
 
         existing_user = UserRepository.get_by_email(
             db,
@@ -24,7 +28,9 @@ class AuthService:
         if existing_user:
             raise ValueError("Email already registered")
 
-        hashed_password = hash_password(user_data.password)
+        hashed_password = hash_password(
+            user_data.password
+        )
 
         new_user = User(
             full_name=user_data.full_name,
@@ -32,7 +38,10 @@ class AuthService:
             hashed_password=hashed_password,
         )
 
-        return UserRepository.create(db, new_user)
+        return UserRepository.create(
+            db,
+            new_user,
+        )
 
     @staticmethod
     def authenticate_user(
@@ -47,16 +56,22 @@ class AuthService:
         )
 
         if not user:
-            raise ValueError("Invalid email or password")
+            raise ValueError(
+                "Invalid email or password"
+            )
 
         if not verify_password(
             password,
             user.hashed_password,
         ):
-            raise ValueError("Invalid email or password")
+            raise ValueError(
+                "Invalid email or password"
+            )
 
         if not user.is_active:
-            raise ValueError("User account is inactive")
+            raise ValueError(
+                "User account is inactive"
+            )
 
         access_token = create_access_token(
             str(user.id)
@@ -67,3 +82,30 @@ class AuthService:
         )
 
         return access_token, refresh_token
+
+    @staticmethod
+    def login_user(
+        db: Session,
+        email: str,
+        password: str,
+    ):
+
+        access_token, refresh_token = (
+            AuthService.authenticate_user(
+                db,
+                email,
+                password,
+            )
+        )
+
+        user = UserRepository.get_by_email(
+            db,
+            email,
+        )
+
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "user": user,
+        }

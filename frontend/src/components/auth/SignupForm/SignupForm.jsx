@@ -23,24 +23,21 @@ function SignupForm() {
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+const handleSubmit = async (event) => {
+  event.preventDefault();
 
-    setError("");
-    setLoading(true);
+  try {
+    await signupUser({
+      name: form.name,
+      email: form.email,
+      password: form.password,
+    });
 
-    try {
-      const data = await signupUser(form);
-
-      signup(data);
-
-      navigate("/dashboard");
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    navigate("/login");
+  } catch (error) {
+    setError(error.message);
+  }
+};
 
   return (
     <div className="space-y-6">

@@ -10,6 +10,7 @@ const AuthContext = createContext(null);
 
 const USER_STORAGE_KEY = "ai-career-mentor-user";
 const ACCESS_TOKEN_KEY = "ai-career-mentor-access-token";
+const REFRESH_TOKEN_KEY = "ai-career-mentor-refresh-token";
 
 
 export function AuthProvider({ children }) {
@@ -30,6 +31,12 @@ export function AuthProvider({ children }) {
   );
 
 
+  const [refreshToken, setRefreshToken] = useState(
+    () => localStorage.getItem(REFRESH_TOKEN_KEY)
+  );
+
+
+  // Store user
   useEffect(() => {
 
     if (user) {
@@ -44,6 +51,7 @@ export function AuthProvider({ children }) {
   }, [user]);
 
 
+  // Store access token
   useEffect(() => {
 
     if (accessToken) {
@@ -58,49 +66,59 @@ export function AuthProvider({ children }) {
   }, [accessToken]);
 
 
+  // Store refresh token
+  useEffect(() => {
+
+    if (refreshToken) {
+      localStorage.setItem(
+        REFRESH_TOKEN_KEY,
+        refreshToken
+      );
+    } else {
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+    }
+
+  }, [refreshToken]);
+
+
+  // LOGIN
   const login = (payload) => {
 
+    const backendUser = payload.user;
+
     setUser({
-      id: payload.id ?? "user",
-      name: payload.name ?? payload.email?.split("@")[0] ?? "User",
-      email: payload.email ?? "",
-      role: payload.role ?? "User",
-      avatar: payload.avatar ?? "U",
+      id: backendUser.id,
+      name: backendUser.full_name,
+      email: backendUser.email,
+      role: backendUser.role,
+      avatar:
+        backendUser.full_name
+          ?.split(" ")
+          .map((name) => name[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase() || "U",
     });
 
-    setAccessToken(payload.accessToken);
+    setAccessToken(payload.access_token);
+    setRefreshToken(payload.refresh_token);
   };
 
 
-const signup = (payload) => {
-  localStorage.setItem(
-    "ai-career-mentor-access-token",
-    payload.access_token
-  );
+  // SIGNUP
+  // Signup only creates the account.
+  // It does NOT authenticate the user.
+  const signup = (userData) => {
+    return userData;
+  };
 
-  localStorage.setItem(
-    "ai-career-mentor-refresh-token",
-    payload.refresh_token
-  );
 
-  setUser({
-    id: payload.id,
-    name: payload.full_name,
-    email: payload.email,
-    role: payload.role,
-    avatar: payload.full_name
-      ?.split(" ")
-      .map((name) => name[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase(),
-  });
-};
-
+  // LOGOUT
   const logout = () => {
 
     setUser(null);
     setAccessToken(null);
+    setRefreshToken(null);
 
   };
 
@@ -109,12 +127,19 @@ const signup = (payload) => {
     () => ({
       user,
       accessToken,
-      isAuthenticated: Boolean(user && accessToken),
+      refreshToken,
+      isAuthenticated: Boolean(
+        user && accessToken
+      ),
       login,
       signup,
       logout,
     }),
-    [user, accessToken]
+    [
+      user,
+      accessToken,
+      refreshToken,
+    ]
   );
 
 

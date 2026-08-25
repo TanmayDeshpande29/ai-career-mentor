@@ -11,6 +11,7 @@ import { loginUser } from "@/services/authService";
 
 
 function LoginForm() {
+
   const [showPassword, setShowPassword] = useState(false);
 
   const [form, setForm] = useState({
@@ -18,49 +19,50 @@ function LoginForm() {
     password: "",
   });
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
+
   const navigate = useNavigate();
 
 
   const handleSubmit = async (event) => {
+
     event.preventDefault();
 
     setError("");
-
-    if (!form.email || !form.password) {
-      setError("Please enter your email and password.");
-      return;
-    }
+    setLoading(true);
 
     try {
-      setLoading(true);
 
+      // Call backend
       const data = await loginUser(
         form.email,
         form.password
       );
 
-      /*
-       * Send the real authentication result
-       * to AuthContext.
-       */
-      login({
-        email: form.email,
-        accessToken: data.access_token,
-        refreshToken: data.refresh_token,
-        tokenType: data.token_type,
-      });
+      console.log("login respnse,",data)
+      console.log("Login response:", data);
 
+      // Save user + tokens in AuthContext
+      login(data);
+
+      // Navigate to dashboard
       navigate("/dashboard");
 
     } catch (error) {
-      setError(error.message);
+
+      console.error("Login error:", error);
+
+      setError(
+        error.message || "Login failed"
+      );
 
     } finally {
+
       setLoading(false);
+
     }
   };
 
@@ -71,7 +73,9 @@ function LoginForm() {
       <div className="space-y-2 text-center">
 
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-violet-500/15 text-violet-300">
+
           <Sparkles className="h-6 w-6" />
+
         </div>
 
         <h2 className="text-2xl font-semibold text-white">
@@ -90,6 +94,8 @@ function LoginForm() {
         onSubmit={handleSubmit}
       >
 
+        {/* EMAIL */}
+
         <div className="space-y-2">
 
           <Label htmlFor="email">
@@ -107,10 +113,13 @@ function LoginForm() {
                 email: event.target.value,
               }))
             }
+            required
           />
 
         </div>
 
+
+        {/* PASSWORD */}
 
         <div className="space-y-2">
 
@@ -122,7 +131,11 @@ function LoginForm() {
 
             <Input
               id="password"
-              type={showPassword ? "text" : "password"}
+              type={
+                showPassword
+                  ? "text"
+                  : "password"
+              }
               placeholder="••••••••"
               value={form.password}
               onChange={(event) =>
@@ -131,20 +144,25 @@ function LoginForm() {
                   password: event.target.value,
                 }))
               }
+              required
             />
 
             <button
               type="button"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
               onClick={() =>
-                setShowPassword((current) => !current)
+                setShowPassword(
+                  (current) => !current
+                )
               }
             >
+
               {showPassword ? (
                 <EyeOff className="h-4 w-4" />
               ) : (
                 <Eye className="h-4 w-4" />
               )}
+
             </button>
 
           </div>
@@ -152,12 +170,16 @@ function LoginForm() {
         </div>
 
 
+        {/* ERROR */}
+
         {error && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
             {error}
           </div>
         )}
 
+
+        {/* OPTIONS */}
 
         <div className="flex items-center justify-between text-sm">
 
@@ -172,6 +194,7 @@ function LoginForm() {
 
           </label>
 
+
           <a
             href="#"
             className="text-violet-300"
@@ -182,12 +205,18 @@ function LoginForm() {
         </div>
 
 
+        {/* BUTTON */}
+
         <Button
           type="submit"
           className="w-full"
           disabled={loading}
         >
-          {loading ? "Signing in..." : "Sign in"}
+
+          {loading
+            ? "Signing in..."
+            : "Sign in"}
+
         </Button>
 
       </form>
@@ -209,5 +238,6 @@ function LoginForm() {
     </div>
   );
 }
+
 
 export default LoginForm;
