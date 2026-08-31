@@ -10,6 +10,10 @@ from app.models import *
 from app.core.config import settings
 from app.models.users import User
 from app.models.career_profiles import CareerProfile
+from app.models.resume import Resume
+from app.models.roadmap import Roadmap, RoadmapItem
+from app.models.chat import Conversation, ChatMessage
+from app.models.preferences import UserPreference
 
 DATABASE_URL = (
     f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}"
