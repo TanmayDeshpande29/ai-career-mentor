@@ -18,13 +18,17 @@ def build_general_agent(model,checkpointer=None):
          checkpointer=checkpointer,
         middleware=[
             SummarizationMiddleware(
-                model=model,
-                trigger={
-                    "messages": settings.AI_SUMMARY_TRIGGER_MESSAGES
-                },
-                keep={
-                    "messages": settings.AI_SUMMARY_KEEP_MESSAGES
-                },
-            ),
+                            model=model,
+            
+                            trigger=(
+                                "messages",
+                                settings.AI_SUMMARY_TRIGGER_MESSAGES,
+                            ),
+            
+                            keep=(
+                                "messages",
+                                settings.AI_SUMMARY_KEEP_MESSAGES,
+                            ),
+                        ),
         ],
     )

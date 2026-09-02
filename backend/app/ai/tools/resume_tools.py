@@ -11,6 +11,31 @@ def get_retriever() -> ResumeRetriever:
     return ResumeRetriever()
 
 
+# @tool
+# def search_user_resume(
+#     query: str,
+#     runtime: ToolRuntime[AgentContext],
+# ) -> str:
+#     """
+#     Search the authenticated user's uploaded resume.
+
+#     Use this whenever the user asks about information that should
+#     come from their actual resume, such as skills, experience,
+#     projects, education, certifications, achievements, or
+#     resume-to-job matching.
+#     """
+
+#     resume_id = runtime.context.resume_id
+
+#     if not resume_id:
+#         return "No active resume is available for retrieval."
+
+#     return get_retriever().retrieve(
+#         user_id=runtime.context.user_id,
+#         resume_id=resume_id,
+#         query=query,
+#     )
+
 @tool
 def search_user_resume(
     query: str,
@@ -25,13 +50,27 @@ def search_user_resume(
     resume-to-job matching.
     """
 
+    print("\n========== RESUME TOOL START ==========")
+    print("user_id:", runtime.context.user_id)
+    print("resume_id:", runtime.context.resume_id)
+    print("query:", query)
+
     resume_id = runtime.context.resume_id
 
     if not resume_id:
+        print("❌ NO RESUME ID")
         return "No active resume is available for retrieval."
 
-    return get_retriever().retrieve(
+    print("Calling ResumeRetriever...")
+
+    result = get_retriever().retrieve(
         user_id=runtime.context.user_id,
         resume_id=resume_id,
         query=query,
     )
+
+    print("Retriever returned!")
+    print("Result length:", len(result))
+    print("========== RESUME TOOL END ==========\n")
+
+    return result

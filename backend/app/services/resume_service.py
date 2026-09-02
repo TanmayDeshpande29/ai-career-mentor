@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy.orm import Session
+from langchain_core.documents import Document
 
 from app.models.resume import Resume
 from app.repositories.resume_repository import ResumeRepository
@@ -9,7 +10,9 @@ from app.schemas.resume import (
     ResumeCreate,
     ResumeUpdate,
 )
+
 from app.ai.rag.ingestion import ResumeIngestionService
+from app.ai.rag.document_loader import ResumeDocumentLoader
 from app.ai.rag.qdrant_store import get_qdrant_client
 from app.core.config import settings
 
@@ -21,7 +24,10 @@ class ResumeService:
     # ============================================================
 
     @staticmethod
-    def get(db: Session, user_id: UUID):
+    def get(
+        db: Session,
+        user_id: UUID,
+    ):
         return ResumeRepository.get_by_user_id(
             db,
             user_id,
@@ -49,6 +55,7 @@ class ResumeService:
         user_id: UUID,
         data: ResumeCreate,
     ):
+
         resume = Resume(
             user_id=user_id,
             **data.model_dump(),
@@ -85,7 +92,7 @@ class ResumeService:
         )
 
         # --------------------------------------------------------
-        # Index resume into Qdrant
+        # Index uploaded resume into Qdrant
         # --------------------------------------------------------
 
         try:
@@ -114,33 +121,67 @@ class ResumeService:
         user_id: UUID,
     ):
 
-        from langchain_core.documents import Document
+        # --------------------------------------------------------
+        # Validate file content
+        # --------------------------------------------------------
 
-        if not resume.raw_text:
+        if not resume.file_content:
+
+            print(
+                f"No file content available for "
+                f"resume {resume.id}"
+            )
+
             return
 
-        document = Document(
-            page_content=resume.raw_text,
-            metadata={
-                "source": resume.file_name or resume.title,
-                "file_type": resume.content_type or "unknown",
-                "user_id": str(user_id),
-                "resume_id": str(resume.id),
-                "document_type": "resume",
-            },
+        if not resume.file_name:
+
+            print(
+                f"No file name available for "
+                f"resume {resume.id}"
+            )
+
+            return
+
+        # --------------------------------------------------------
+        # Convert uploaded file → LangChain Documents
+        # --------------------------------------------------------
+
+        documents = ResumeDocumentLoader.load_from_bytes(
+            file_content=resume.file_content,
+            file_name=resume.file_name,
+            content_type=resume.content_type,
         )
+
+        if not documents:
+
+            print(
+                f"No text could be extracted from "
+                f"resume {resume.id}"
+            )
+
+            return
+
+        print(
+            f"Extracted {len(documents)} documents "
+            f"from resume {resume.id}"
+        )
+
+        # --------------------------------------------------------
+        # Index into Qdrant
+        # --------------------------------------------------------
 
         ingestion_service = ResumeIngestionService()
 
-        chunks = ingestion_service.index_resume(
-            documents=[document],
+        chunk_count = ingestion_service.index_resume(
+            documents=documents,
             user_id=user_id,
             resume_id=resume.id,
         )
 
         print(
             f"Resume {resume.id} indexed successfully. "
-            f"Created {chunks} chunks."
+            f"Created {chunk_count} chunks."
         )
 
     # ============================================================
@@ -162,7 +203,9 @@ class ResumeService:
         )
 
         if not resume or resume.is_deleted:
-            raise ValueError("Resume not found")
+            raise ValueError(
+                "Resume not found"
+            )
 
         resume.title = data.title
         resume.raw_text = data.raw_text
@@ -212,7 +255,9 @@ class ResumeService:
         )
 
         if not resume:
-            raise ValueError("Resume not found")
+            raise ValueError(
+                "Resume not found"
+            )
 
         resume.is_deleted = True
 
@@ -291,7 +336,9 @@ class ResumeService:
         )
 
         if not resume or resume.is_deleted:
-            raise ValueError("Resume not found")
+            raise ValueError(
+                "Resume not found"
+            )
 
         resume.raw_text = data.raw_text
         resume.is_enhanced = True
@@ -309,10 +356,43 @@ class ResumeService:
                 resume_id=resume_id,
             )
 
-            ResumeService._index_resume(
-                resume=resume,
-                user_id=user_id,
-            )
+            # For enhanced resumes, raw_text is the
+            # source because the enhanced content may
+            # not exist as a new uploaded file.
+
+            if resume.raw_text:
+
+                document = Document(
+                    page_content=resume.raw_text,
+                    metadata={
+                        "source": (
+                            resume.file_name
+                            or resume.title
+                        ),
+                        "file_type": (
+                            resume.content_type
+                            or "text"
+                        ),
+                    },
+                )
+
+                ingestion_service = (
+                    ResumeIngestionService()
+                )
+
+                chunk_count = (
+                    ingestion_service.index_resume(
+                        documents=[document],
+                        user_id=user_id,
+                        resume_id=resume.id,
+                    )
+                )
+
+                print(
+                    f"Enhanced resume {resume.id} "
+                    f"indexed successfully. "
+                    f"Created {chunk_count} chunks."
+                )
 
         except Exception as error:
 

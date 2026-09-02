@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 
 from app.models.chat import ChatMessage, Conversation
 from app.repositories.chat_repository import ChatRepository
+from app.repositories.resume_repository import ResumeRepository
 from app.schemas.chat import ConversationCreate, MessageCreate
 from app.services.ai_service import AIService
-
+from app.services.resume_service import ResumeService
 
 class ChatService:
 
@@ -125,17 +126,48 @@ class ChatService:
         ]
 
         # --------------------------------
-        # 3. Generate AI response
+        # 3. Get user's active resume
+        # --------------------------------
+
+        resumes = ResumeService.get(
+            db,
+            user_id,
+        )
+
+        resume_id = None
+
+        if resumes:
+            # ResumeService.get() returns a list
+            # containing the user's resumes.
+
+            active_resume = next(
+                (
+                    resume
+                    for resume in resumes
+                    if not resume.is_deleted
+                ),
+                None,
+            )
+
+            if active_resume:
+                resume_id = active_resume.id
+
+        # --------------------------------
+        # 4. Generate AI response
         # --------------------------------
 
         ai_service = AIService()
 
         ai_response = ai_service.generate_response(
-            messages
+            messages=messages,
+            user_id=str(user_id),
+            conversation_id=str(conversation.id),
+            db=db,
+            resume_id=str(resume_id) if resume_id else None,
         )
 
         # --------------------------------
-        # 4. Save AI response
+        # 5. Save AI response
         # --------------------------------
 
         assistant_message = ChatMessage(
@@ -150,7 +182,7 @@ class ChatService:
         )
 
         # --------------------------------
-        # 5. Return AI message
+        # 6. Return AI message
         # --------------------------------
 
         return assistant_message
@@ -161,6 +193,7 @@ class ChatService:
         user_id: UUID,
         conversation_id: UUID,
     ):
+
         conversation = ChatRepository.get_conversation(
             db,
             conversation_id,

@@ -9,6 +9,7 @@ from app.ai.rag.qdrant_store import get_vector_store
 class ResumeIngestionService:
 
     def __init__(self):
+
         self.vector_store = get_vector_store()
 
         self.text_splitter = RecursiveCharacterTextSplitter(

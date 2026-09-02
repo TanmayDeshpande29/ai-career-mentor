@@ -28,6 +28,7 @@ langchain-text-splitters
 
 qdrant-client
 sentence-transformers
+fastembed
 
 pypdf
 python-docx

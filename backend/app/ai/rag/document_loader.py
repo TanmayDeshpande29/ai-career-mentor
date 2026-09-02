@@ -1,3 +1,4 @@
+from io import BytesIO
 from pathlib import Path
 
 from langchain_core.documents import Document
@@ -8,39 +9,48 @@ from docx import Document as DocxDocument
 class ResumeDocumentLoader:
 
     @staticmethod
-    def load(file_path: str) -> list[Document]:
-        """
-        Load a PDF or DOCX resume into LangChain Documents.
-        """
+    def load_from_bytes(
+        file_content: bytes,
+        file_name: str,
+        content_type: str | None = None,
+    ) -> list[Document]:
 
-        path = Path(file_path)
-
-        if not path.exists():
-            raise FileNotFoundError(
-                f"Resume file not found: {file_path}"
-            )
-
-        extension = path.suffix.lower()
+        extension = Path(file_name).suffix.lower()
 
         if extension == ".pdf":
-            return ResumeDocumentLoader._load_pdf(path)
+            return ResumeDocumentLoader._load_pdf_bytes(
+                file_content,
+                file_name,
+            )
 
         if extension == ".docx":
-            return ResumeDocumentLoader._load_docx(path)
+            return ResumeDocumentLoader._load_docx_bytes(
+                file_content,
+                file_name,
+            )
 
         raise ValueError(
             f"Unsupported resume format: {extension}"
         )
 
     @staticmethod
-    def _load_pdf(path: Path) -> list[Document]:
-        reader = PdfReader(str(path))
+    def _load_pdf_bytes(
+        file_content: bytes,
+        file_name: str,
+    ) -> list[Document]:
+
+        reader = PdfReader(
+            BytesIO(file_content)
+        )
 
         documents = []
 
-        for page_number, page in enumerate(reader.pages, start=1):
-            text = page.extract_text() or ""
+        for page_number, page in enumerate(
+            reader.pages,
+            start=1,
+        ):
 
+            text = page.extract_text() or ""
             text = text.strip()
 
             if not text:
@@ -50,7 +60,7 @@ class ResumeDocumentLoader:
                 Document(
                     page_content=text,
                     metadata={
-                        "source": path.name,
+                        "source": file_name,
                         "file_type": "pdf",
                         "page": page_number,
                     },
@@ -60,8 +70,14 @@ class ResumeDocumentLoader:
         return documents
 
     @staticmethod
-    def _load_docx(path: Path) -> list[Document]:
-        document = DocxDocument(str(path))
+    def _load_docx_bytes(
+        file_content: bytes,
+        file_name: str,
+    ) -> list[Document]:
+
+        document = DocxDocument(
+            BytesIO(file_content)
+        )
 
         paragraphs = [
             paragraph.text.strip()
@@ -78,7 +94,7 @@ class ResumeDocumentLoader:
             Document(
                 page_content=text,
                 metadata={
-                    "source": path.name,
+                    "source": file_name,
                     "file_type": "docx",
                     "page": 1,
                 },

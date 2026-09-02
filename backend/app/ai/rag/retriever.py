@@ -21,28 +21,59 @@ class ResumeRetriever:
 
         top_k = top_k or settings.AI_RAG_TOP_K
 
-        documents: list[Document] = (
-            self.vector_store.similarity_search(
-                query=query,
-                k=top_k,
-                filter={
-                    "must": [
-                        {
-                            "key": "metadata.user_id",
-                            "match": {
-                                "value": str(user_id),
-                            },
+        print("\n========== RAG RETRIEVAL START ==========")
+        print("user_id:", user_id)
+        print("resume_id:", resume_id)
+        print("query:", query)
+        print("top_k:", top_k)
+
+        print("Calling Qdrant similarity_search...")
+
+        documents: list[Document] = self.vector_store.similarity_search(
+            query=query,
+            k=top_k,
+            filter={
+                "must": [
+                    {
+                        "key": "metadata.user_id",
+                        "match": {
+                            "value": str(user_id),
                         },
-                        {
-                            "key": "metadata.resume_id",
-                            "match": {
-                                "value": str(resume_id),
-                            },
+                    },
+                    {
+                        "key": "metadata.resume_id",
+                        "match": {
+                            "value": str(resume_id),
                         },
-                    ]
-                },
-            )
+                    },
+                ]
+            },
         )
+
+        print("Qdrant returned!")
+        print("Documents:", len(documents))
+
+        # ---------------------------------------------------------
+        # DEBUG: Inspect exactly what Qdrant retrieved
+        # ---------------------------------------------------------
+
+        for index, document in enumerate(documents, start=1):
+
+            print(
+                f"\n========== RETRIEVED DOCUMENT {index} =========="
+            )
+
+            print("Metadata:")
+            print(document.metadata)
+
+            print("\nContent:")
+            print(document.page_content)
+
+            print(
+                "==============================================="
+            )
+
+        print("\n========== RAG RETRIEVAL END ==========\n")
 
         if not documents:
             return (

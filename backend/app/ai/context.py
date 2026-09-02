@@ -7,10 +7,10 @@ from sqlalchemy.orm import Session
 @dataclass
 class AgentContext:
     """
-    Runtime dependencies supplied to every AI execution.
+    Runtime dependencies supplied by the backend.
 
-    This data is NOT model-generated.
-    It is controlled by our backend.
+    This context is trusted application state.
+    It is NEVER generated or modified by the LLM.
     """
 
     user_id: str
