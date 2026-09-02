@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { useAuth } from "@/contexts/AuthContext";
 import { signupUser } from "@/services/authService";
 
 function SignupForm() {
@@ -19,12 +18,12 @@ function SignupForm() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const { signup } = useAuth();
   const navigate = useNavigate();
 
 const handleSubmit = async (event) => {
   event.preventDefault();
+    setError("");
+    setLoading(true);
 
   try {
     await signupUser({
@@ -36,6 +35,8 @@ const handleSubmit = async (event) => {
     navigate("/login");
   } catch (error) {
     setError(error.message);
+  } finally {
+    setLoading(false);
   }
 };
 

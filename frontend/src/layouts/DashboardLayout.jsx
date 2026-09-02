@@ -16,9 +16,9 @@ function DashboardLayout() {
   const { user, logout } = useAuth();
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.24),_transparent_30%),linear-gradient(135deg,_#020617_0%,_#030712_100%)] text-slate-100">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-4 lg:flex-row lg:px-6 lg:py-6">
-        <aside className="w-full rounded-3xl border border-white/10 bg-slate-900/70 p-4 shadow-2xl shadow-black/25 backdrop-blur-xl lg:w-72">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.24),_transparent_30%),linear-gradient(135deg,_#020617_0%,_#030712_100%)] text-slate-100 lg:h-screen lg:overflow-hidden">
+      <div className="flex w-full flex-col gap-6 py-4 lg:h-full lg:min-h-0 lg:flex-row lg:py-6">
+        <aside className="w-full rounded-3xl border border-white/10 bg-slate-900/70 p-4 shadow-2xl shadow-black/25 backdrop-blur-xl lg:h-full lg:w-72 lg:shrink-0 lg:overflow-y-auto">
           <div className="flex items-center justify-between px-2 py-2">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-violet-400">Workspace</p>
@@ -60,7 +60,7 @@ function DashboardLayout() {
           </div>
         </aside>
 
-        <main className="flex-1 space-y-6">
+        <main className="flex-1 space-y-6 lg:min-h-0 lg:overflow-y-auto">
           <header className="flex flex-wrap items-center justify-between rounded-3xl border border-white/10 bg-slate-900/70 px-4 py-4 shadow-xl shadow-black/20 backdrop-blur-xl">
             <div>
               <p className="text-sm text-slate-400">Good evening</p>

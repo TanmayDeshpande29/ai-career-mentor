@@ -122,6 +122,15 @@ export function AuthProvider({ children }) {
 
   };
 
+  const updateUser = (backendUser) => {
+    setUser((current) => ({
+      ...current,
+      name: backendUser.full_name,
+      email: backendUser.email,
+      role: backendUser.role,
+    }));
+  };
+
 
   const value = useMemo(
     () => ({
@@ -134,6 +143,7 @@ export function AuthProvider({ children }) {
       login,
       signup,
       logout,
+      updateUser,
     }),
     [
       user,

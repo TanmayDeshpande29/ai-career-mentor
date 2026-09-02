@@ -126,5 +126,26 @@
     }
   html {
     @apply font-sans;
+    scrollbar-color: rgb(124 92 246 / 0.75) rgb(15 23 42 / 0.9);
+    scrollbar-width: thin;
+    }
+  * {
+    scrollbar-color: rgb(124 92 246 / 0.75) rgb(15 23 42 / 0.9);
+    scrollbar-width: thin;
+    }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    }
+  ::-webkit-scrollbar-track {
+    background: rgb(15 23 42 / 0.9);
+    }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(124 92 246 / 0.75);
+    border: 2px solid rgb(15 23 42 / 0.9);
+    border-radius: 999px;
+    }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(167 139 250 / 0.9);
     }
 }
